@@ -4,36 +4,39 @@ let fs = require('fs');
 let request = require('request');
 const path = require('path');
 const Tabletop = require('tabletop'); //arjunvenkatraman added to load data from Google Sheets directly
-let arrayWithData = [];
 const app = express();
 const port = process.env.PORT || 5000;
-const datasrc = "SHEET" // "TSV" or "SHEET"
-const approvedSheetName = 'People';
 const textfields = ['Name', 'Location']
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-const publicSpreadsheetUrl = "https://docs.google.com/spreadsheets/d/1KZtJDrmyam3LW4cK59ECbL7UKDzvQgWzaJAfyNK9XBI/edit?usp=sharing";
-const overlay1data = "https://docs.google.com/spreadsheets/d/1IMEwEzT3FwMNCwHpdyotDSZIF1-icQnd9ET7C53v2Z0/edit#gid=0"
+const datasheets={
+  sampledata: {url:"https://docs.google.com/spreadsheets/d/1KZtJDrmyam3LW4cK59ECbL7UKDzvQgWzaJAfyNK9XBI/edit?usp=sharing", wsname:"PeopleSimple"},
+  coronadata: {url:"https://docs.google.com/spreadsheets/d/1IMEwEzT3FwMNCwHpdyotDSZIF1-icQnd9ET7C53v2Z0/edit#gid=0", wsname:"Sheet1"}
+}
+// const publicSpreadsheetUrl =
+// const overlay1data = "https://docs.google.com/spreadsheets/d/1IMEwEzT3FwMNCwHpdyotDSZIF1-icQnd9ET7C53v2Z0/edit#gid=0"
 // Datasource check with datasrc var
 
-app.get('/getBlockData', async (req, res) => {
-  if (datasrc === "TSV") {
-    let rawtsv = fs.readFileSync('./RawData/VideoData.tsv', 'utf8')
-    let revisedJSON = await tsvJSON(rawtsv);
-    fs.writeFileSync('./RawData/VideoData.json', JSON.stringify(revisedJSON, null, 2))
-    console.log("Sending back TSV Response")
-    res.send(revisedJSON)
-  }
-  if (datasrc === "SHEET") {
-    let revisedJSON = await getSheetData();
-    fs.writeFileSync('./RawData/VideoData.json', JSON.stringify(revisedJSON, null, 2))
+app.get('/getData/:sheet/:format?', async (req, res) => {
+    console.log(req.params.sheet)
+    let revisedJSON = await getSheetData(req.params.sheet,req.params.format);
+
+    //fs.writeFileSync('./RawData/VideoData.json', JSON.stringify(revisedJSON, null, 2))
     console.log("Sending Sheet Response")
     res.send(revisedJSON)
-  }
+})
+
+app.get('/getLocationData', async (req, res) => {
+
+    let revisedJSON = await getLocationSheetData();
+    console.log("Sending Sheet Response")
+    res.send(revisedJSON)
+
 
 })
+
 
 app.get('/getCoronaData', async (req, res) => {
     locationdata = await getLocationSheetData()
@@ -49,23 +52,19 @@ app.get('/getCoronaData', async (req, res) => {
 
 })
 
-app.get('/getLocationData', async (req, res) => {
-
-    let revisedJSON = await getLocationSheetData();
-    console.log("Sending Sheet Response")
-    res.send(revisedJSON)
 
 
-})
 // Pulling from Google Sheets with Tabletop
-function getSheetData() {
+function getSheetData(sheetkey, format="json") {
+    console.log(sheetkey)
   return new Promise((resolve) => {
     Tabletop.init({
-      key: publicSpreadsheetUrl,
+      key: datasheets[sheetkey].url,
       callback: function(data, tabletop) {
-        resolve(processSheetData(tabletop));
+
+        resolve(processSheetData2(tabletop, datasheets[sheetkey].wsname, format));
       },
-      simpleSheet: true
+      simpleSheet: false
     })
   })
 }
@@ -73,11 +72,11 @@ function getSheetData() {
 function getLocationSheetData() {
   return new Promise((resolve) => {
     Tabletop.init({
-      key: publicSpreadsheetUrl,
+      key: datasheets.sampledata.url,
       callback: function(data, tabletop) {
         resolve(processLocationSheetData(tabletop));
       },
-      simpleSheet: true
+      simpleSheet: false
     })
   })
 }
@@ -106,26 +105,51 @@ function get_text_field(item) {
 }
 
 
+//Cleaning up the sheet data
+function processSheetData2(tabletop,wsname,format="json") {
+  console.log(wsname, format)
+  let data={}
+  if (tabletop.models[wsname]) {
+    if (format==="json"){
+      data = tabletop.models[wsname].elements;
+      data.forEach(item => {
+        text=""
+        Object.keys(item).forEach(key=>{
+          text = text + " " + item[key]
+        })
+        item['text']=text
+      })
+    }
+    else{
+      data = tabletop.models[wsname].toArray();
+    }
+
+    newjson = data;
+    return (newjson);
+  }
+  else {
+    console.log(`No sheet called ${approvedSheetName}`)
+    return (`No sheet is called ${approvedSheetName}`)
+  }
+}
+
+
+
 
 //Cleaning up the sheet data
 function processSheetData(tabletop) {
   if (tabletop.models[approvedSheetName]) {
     let data = tabletop.models[approvedSheetName].elements;
-    console.log(data[0])
+
     let newjson = { "locations": {}, "totalBlocks": 0 }
     data.map(currentline => {
+      console.log(currentline)
       if (!isNaN(currentline['Latitude (°N)']) && !isNaN(currentline['Longitude (°E)'])) {
         if (newjson.locations[currentline['Location']] !== undefined) {
           newjson.locations[currentline['Location']].blocks.push({
             link: "",//currentline['Content URL'],
             caption: currentline['Name'],
             textsearch: get_text_field(currentline).toLowerCase()
-            //caption: currentline['Caption'],
-            //date: currentline['Event Date'],
-            //protestName: currentline['Protest Name'],
-            //eventType: currentline['Event Type'],
-            //eventLocation: currentline['Event Location'],
-            //sourceURL: currentline['Source URL']
           })
         }
         else {
@@ -199,10 +223,10 @@ function processLocationSheetData(tabletop) {
     console.log(keys)
     let newjson = {"locations":{}}
     data.map(currentline => {
-      state=currentline['state']
+      location=currentline['location']
       lat=currentline['lat']
       lng=currentline['lng']
-      newjson.locations[state]={"coordinates":{"latitude":lat, "longitude":lng}}
+      newjson.locations[location]={"coordinates":{"latitude":lat, "longitude":lng}}
 
     })
     console.log(newjson)
@@ -212,51 +236,6 @@ function processLocationSheetData(tabletop) {
     console.log(`No sheet called ${approvedSheetName}`)
     return (`No sheet is called ${approvedSheetName}`)
   }
-}
-//Cleaning up the TSV data
-function tsvJSON(tsv) {
-  return new Promise((resolve, reject) => {
-    var lines = tsv.split(/\r?\n/);
-    let titleLine = lines.shift();
-    let captionIndex = titleLine.split(/\t/).indexOf('Caption');
-    let dateIndex = titleLine.split(/\t/).indexOf('Date');
-    let latIndex = titleLine.split(/\t/).indexOf('Latitude (°N)');
-    let longIndex = titleLine.split(/\t/).indexOf('Longitude (°E)');
-    let linkIndex = titleLine.split(/\t/).indexOf('Link');
-    let cityIndex = titleLine.split(/\t/).indexOf('City');
-    let newjson = { "locations": {}, "totalBlocks": 0 }
-
-    lines.map(line => {
-      let currentline = line.split(/\t/);
-      if (!isNaN(currentline['Latitude (°N)']) && !isNaN(currentline['Longitude (°E)'])) {
-        if (newjson.locations[currentline[cityIndex]] != undefined) {
-          newjson.locations[currentline[cityIndex]].blocks.push({
-            link: currentline[linkIndex],
-            caption: currentline[captionIndex],
-            date: currentline[dateIndex]
-          })
-        }
-        else {
-          newjson.locations[currentline[cityIndex]] = {
-            videos: [{
-              link: currentline[linkIndex],
-              caption: currentline[captionIndex],
-              date: currentline[dateIndex]
-            }],
-            coordinates: {
-              latitude: currentline[latIndex],
-              longitude: currentline[longIndex]
-            }
-          }
-        }
-      }
-    })
-    newjson.totalBlocks = lines.length;
-    resolve(newjson);
-    // reject({
-    //   error: 'something went wrong in tsv to JSON conversion'
-    // })
-  })
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -270,18 +249,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(port, () => console.log(`Listening on port: ${port}`));
-
-
-//TWITTER EMBED API INFO
-// app.post('/getTwitterEmbedInfo', async (req, res) => {
-//     console.log("inside getTwitterEmbedInfo")
-//     let reqUrl = await buildUrl('https://publish.twitter.com/oembed', {url: req.body.url,theme: 'dark',widget_type: 'video'})
-//     request( {url: reqUrl}, (err, resp, body) => {
-//         let bodyJSON = JSON.parse(body);
-//         console.log(bodyJSON)
-//         res.send(bodyJSON)
-//     })
-// })
 
 // function buildUrl(url, parameters) {
 //     return new Promise((resolve, reject) => {

@@ -11,32 +11,36 @@ import {SecNav} from './SecNav.js'
 import './CSS/App.css'
 
 function get_filter(datajson,searchkey){
-  var datajson2={"locations":{},totalBlocks:0}
+  var datajson2={"locations":{},totalItems:0}
   Object.keys(datajson.locations).forEach(function(key){
-    datajson2.locations[key]={"blocks":[], "coordinates":datajson.locations[key].coordinates}
-    datajson2.locations[key].blocks = datajson.locations[key].blocks.filter(function(item){
+    datajson2.locations[key]={"items":[], "coordinates":datajson.locations[key].coordinates}
+    datajson2.locations[key].items = datajson.locations[key].items.filter(function(item){
       return item.textsearch.includes(searchkey.toLowerCase())
     })
   })
   var count=0
-  Object.keys(datajson2.locations).forEach(function(state){
-    count=count+datajson2.locations[state].blocks.length
-    if(datajson2.locations[state].blocks.length==0){
-      delete datajson2.locations[state]
+  Object.keys(datajson2.locations).forEach(function(location){
+    count=count+datajson2.locations[location].items.length
+    if(datajson2.locations[location].items.length==0){
+      delete datajson2.locations[location]
     }
   })
-  datajson2.totalBlocks=count
+  datajson2.totalItems=count
   return datajson2
 }
 
 const fetchJSON = async() => {
-  const res = await fetch('/getBlockData');
-  const videoData = await res.json();
-  if(res.status !== 200) throw Error(videoData.message)
-  const res2 = await fetch('/getCoronaData');
-  const coronaData = await res2.json();
-  if(res2.status !== 200) throw Error(coronaData.message)
-  return {"videoData":videoData, "coronaData": coronaData};
+
+  const res = await fetch('/getLocationData');
+  if(res.status !== 200) throw Error(res.message)
+  const locationData = await res.json();
+
+  const res2 = await fetch('/getData/sampledata');
+  if(res2.status !== 200) throw Error(res2.message)
+  const sampleData = await res2.json();
+
+
+  return {"locationData":locationData, sampleData: sampleData};
 }
 
 
@@ -53,11 +57,9 @@ const config = {
 }
 
 function App() {
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [videoData, setVideoData] = useState({});
-  const [totalCities, setTotalCities] = useState([]);
-  const [coronaData, setCoronaData] = useState({});
-
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [locationData, setLocationData] = useState({});
+  const [totalLocations, setTotalLocations] = useState([]);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const desktopSize = 1024;
   const [searchQuery,setSearchQuery] = useState("");
@@ -69,19 +71,22 @@ function App() {
     fetchJSON()
       .then(res => {
         console.log(res)
-        setCoronaData(res.coronaData.locations)
-        setVideoData(res.videoData.locations);
+        let locationData=res.locationData.locations
+        Object.keys(locationData).forEach(location=>{
+          locationData[location].items=[]
+        })
+        setLocationData(locationData);
         setResult(res.videoData)
-        let citiesArray = Object.keys(res.videoData.locations);
+        let locationArray = Object.keys(res.locationData.locations);
         let urlLocation = window.location.href
-        let hashCity = urlLocation.split('#')[1];
-        if(hashCity !== undefined && hashCity.length>1) {
-          let formattedHashCity = hashCity.charAt(0).toUpperCase() + hashCity.slice(1);
-          if(citiesArray.indexOf(formattedHashCity) !== -1) {
-            setSelectedCity(formattedHashCity);
+        let hashLocation = urlLocation.split('#')[1];
+        if(hashLocation !== undefined && hashLocation.length>1) {
+          let formattedHashLocation = hashLocation.charAt(0).toUpperCase() + hashLocation.slice(1);
+          if(locationArray.indexOf(formattedHashLocation) !== -1) {
+            setSelectedLocation(formattedHashLocation);
           }
         }
-        setTotalCities(citiesArray);
+        setTotalLocations(locationArray);
         ;
       })
       .catch(err => console.log(err))
@@ -95,18 +100,18 @@ function App() {
     newPostKey.set(newData);
   }
 
-  const onMarkerClick = (e, city) => {
+  const onMarkerClick = (e, location) => {
     e.preventDefault();
-    if(city){window.location.hash = city; window.scrollTo({top: 0, left: 0, behavior: 'smooth'})}
+    if(location){window.location.hash = location; window.scrollTo({top: 0, left: 0, behavior: 'smooth'})}
     else{window.location.hash = ""}
-    if(selectedCity !== city) {
-      setSelectedCity(city);
+    if(selectedLocation !== location) {
+      setSelectedLocation(location);
     }
   }
 
   const onCityDetailClose = (e) => {
     e && e.preventDefault();
-    setSelectedCity(null)
+    setSelectedLocation(null)
   }
 
   const handleAboutClicked = () => {
@@ -123,10 +128,10 @@ function App() {
   const onChangeSearch = item => {
     console.log(item.target.value)
     var filterresult=get_filter(result,item.target.value)
-    setVideoData(filterresult.locations)
-    setTotalCities(Object.keys(filterresult.locations))
-    setSelectedCity(null)
-    console.log(videoData)
+    setLocationData(filterresult.locations)
+    setTotalLocations(Object.keys(filterresult.locations))
+    setSelectedLocation(null)
+    console.log(locationData)
   }
 
   return (
@@ -139,8 +144,8 @@ function App() {
       {isAboutOpen && <About handleAboutClose={handleAboutClose} desktopSize={desktopSize} />}
 
       <SecNav handleAboutClicked = {handleAboutClicked}/>
-      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={videoData} totalCities={totalCities} coronaData={coronaData} desktopSize={desktopSize}/>
-      {selectedCity && <CityDetailView selectedCity={selectedCity} videoData={videoData} coronaData={coronaData} onCityDetailClose={onCityDetailClose} desktopSize={desktopSize} />}
+      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={locationData} totalCities={totalLocations} desktopSize={desktopSize}/>
+      {selectedLocation && <CityDetailView selectedCity={selectedLocation} videoData={locationData}  onCityDetailClose={onCityDetailClose} desktopSize={desktopSize} />}
       </div>)
 }
 
