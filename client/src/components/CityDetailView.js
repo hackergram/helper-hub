@@ -107,42 +107,6 @@ export function CityDetailView(props) {
                 >
                 <div>
                   </div>
-                    {videoData[selectedCity].items.slice(0).reverse().map((videoObj, index) => {
-                        if(videoObj.link.indexOf('twitter.com') !== -1) {
-                            let id = videoObj.link.split(/\/?\//)[4].split('?')[0];
-                            return (
-                                <div className="linkCard" key={id + index}>
-                                    <p>{videoObj.date}</p>
-                                    <h2>{videoObj.caption}</h2>
-                                    <TwitterVideoEmbed id={id}
-                                        onLoad={e => {if(e){e.style.display = "inline-block"}}}
-                                    />
-                                </div>
-                            )
-                        }
-                        else if(videoObj.link.indexOf('instagram.com') !== -1) {
-
-                            return (
-                                <div className="linkCard" key={videoObj.link+ index}>
-                                    <p>{videoObj.date}</p>
-                                    <h2>{videoObj.caption}</h2>
-                                    <InstagramEmbed url={videoObj.link}
-                                        onLoad={e => {if(e){e.style.display = "inline-block"}}}
-                                    />
-                                </div>
-                            )
-                        }
-
-                        else {
-                            return (
-                                <div className="linkCard" key={index}>
-                                    <p>{videoObj.date}</p>
-                                    <h2>{videoObj.caption}</h2>
-                                    <a href={videoObj.link} target="_blank" className='rawLink'>{videoObj.link} </a>
-                                </div>
-                            )
-                        }
-                    })}
                 </motion.div>
 
             </motion.div>
