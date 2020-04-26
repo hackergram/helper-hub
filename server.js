@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 const datasheets={
-  sampledata: {url:"https://docs.google.com/spreadsheets/d/1KZtJDrmyam3LW4cK59ECbL7UKDzvQgWzaJAfyNK9XBI/edit?usp=sharing", wsname:"PeopleSimple"},
+  sampledata: {url:"https://docs.google.com/spreadsheets/d/1k95t4dfCECYsMAgt6hDk8zJdCcXlDNdoama_qd5DqNk/edit#gid=1039939066", wsname:"Published"},
   coronadata: {url:"https://docs.google.com/spreadsheets/d/1IMEwEzT3FwMNCwHpdyotDSZIF1-icQnd9ET7C53v2Z0/edit#gid=0", wsname:"Sheet1"}
 }
 // const publicSpreadsheetUrl =

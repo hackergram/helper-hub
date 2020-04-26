@@ -113,7 +113,15 @@ export function CityDetailView(props) {
                     <ul>
                     {videoData[selectedCity].items[group].map(item=>{
                       return(
-                        <li><div>{JSON.stringify(item)}</div></li>
+
+                        <div className="card-body">
+                        <p><b>Posted by:</b> {item.alias} </p>
+                        <p><b>Contact:</b> {item.contact} </p>
+                        <p><b>Posted:</b> {item.timestamp} </p>
+
+                        {item.content}
+
+                        </div>
                       )
 
                     })}
