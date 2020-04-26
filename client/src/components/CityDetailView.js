@@ -3,9 +3,9 @@ import {motion, useMotionValue, useAnimation, AnimatePresence} from 'framer-moti
 import {TwitterVideoEmbed} from 'react-twitter-embed';
 import InstagramEmbed from 'react-instagram-embed';
 import close from '../icons/close.svg'
-
+const colors=["red", "green", "blue"]
 export function CityDetailView(props) {
-    const {selectedCity, videoData, onCityDetailClose, desktopSize } = props;
+    const {selectedCity, videoData, groups, onCityDetailClose, desktopSize } = props;
     let currentScrollValue = useMotionValue(0);
     let touchStart = 0;
     let touchEnd = 0;
@@ -106,46 +106,22 @@ export function CityDetailView(props) {
 
                 >
                 <div>
-                  </div>
-                    {videoData[selectedCity].items.slice(0).reverse().map((videoObj, index) => {
-                        if(videoObj.link.indexOf('twitter.com') !== -1) {
-                            let id = videoObj.link.split(/\/?\//)[4].split('?')[0];
-                            return (
-                                <div className="linkCard" key={id + index}>
-                                    <p>{videoObj.date}</p>
-                                    <h2>{videoObj.caption}</h2>
-                                    <TwitterVideoEmbed id={id}
-                                        onLoad={e => {if(e){e.style.display = "inline-block"}}}
-                                    />
-                                </div>
-                            )
-                        }
-                        else if(videoObj.link.indexOf('instagram.com') !== -1) {
+                {groups.map((group,index)=>{
+                  return(
+                    <div>
+                    <h2 style={{color:colors[index]}}>{videoData[selectedCity].items[group].length} {group}s</h2>
+                    <ul>
+                    {videoData[selectedCity].items[group].map(item=>{
+                      return(
+                        <li><div>{JSON.stringify(item)}</div></li>
+                      )
 
-                            return (
-                                <div className="linkCard" key={videoObj.link+ index}>
-                                    <p>{videoObj.date}</p>
-                                    <h2>{videoObj.caption}</h2>
-                                    <InstagramEmbed url={videoObj.link}
-                                        onLoad={e => {if(e){e.style.display = "inline-block"}}}
-                                    />
-                                </div>
-                            )
-                        }
-
-                        else {
-                            return (
-                                <div className="linkCard" key={index}>
-                                    <p>{videoObj.date}</p>
-                                    <h2 className={videoObj.type}>{videoObj.Type}: {videoObj.caption}</h2>
-                                    <h4><b>Fellow: </b>{videoObj.fellowname}</h4>
-                                    <h4><b>Organization: </b>{videoObj.organization}</h4>
-                                    <b>Contact: </b>{videoObj.contact}
-                                    <a href={videoObj.link} target="_blank" className='rawLink'>{videoObj.link} </a>
-                                </div>
-                            )
-                        }
                     })}
+                    </ul>
+                    </div>
+                  )
+                })}
+                  </div>
                 </motion.div>
 
             </motion.div>

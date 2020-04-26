@@ -67,7 +67,8 @@ const config = {
 
 function App() {
   const [fetchData, setFetchData] = useState({});
-  const [allData, setAllData]=useState({locations:{}});
+  const [allData, setAllData]=useState({locations:{},groups:[]});
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const desktopSize = 1024;
   const [searchQuery,setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -101,6 +102,20 @@ function App() {
     }
   }
 
+  const handleAboutClicked = () => {
+    window.location.hash = "about"
+    setIsAboutOpen(true);
+  }
+
+  const handleAboutClose = () => {
+    window.location.hash = "/"
+    setIsAboutOpen(false);
+  }
+  const onCityDetailClose = (e) => {
+    e && e.preventDefault();
+    setSelectedLocation(null)
+  }
+
   return (
     <div className="app">
       <div className="searchbar">
@@ -108,7 +123,11 @@ function App() {
           Search by text: <input type="text" name="searchQuery" onChange={onChangeSearch.bind(searchQuery)}></input>
         </form>
       </div>
-      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={allData.locations} totalCities={Object.keys(allData.locations)} desktopSize={desktopSize}/>
+      {isAboutOpen && <About handleAboutClose={handleAboutClose} desktopSize={desktopSize} />}
+      <SecNav handleAboutClicked = {handleAboutClicked}/>
+
+      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={allData.locations} totalLocations={Object.keys(allData.locations)} groups={allData.groups} desktopSize={desktopSize}/>
+      {selectedLocation && <CityDetailView selectedCity={selectedLocation} videoData={allData.locations}  groups={allData.groups} onCityDetailClose={onCityDetailClose} desktopSize={desktopSize} />}
 
       {Object.keys(allData.locations).map(key=>{
         return(
