@@ -6,7 +6,8 @@ import {PageView } from "./Tracking";
 export function MapLayer(props) {
 
     let clickedOnMarker = false;
-    const {onMarkerClick, videoData, totalCities, desktopSize} = props;
+    const {onMarkerClick, datalayers, videoData, totalCities, desktopSize} = props;
+
     const [viewport, setViewport] = useState({
         latitude: 21.2787,
         longitude: 81.8661,
@@ -50,7 +51,11 @@ export function MapLayer(props) {
             onViewportChange = {viewport => {setViewport(viewport)}}
             mapStyle="mapbox://styles/hackergram/ck8ioxu2f1nss1iqdl9zxwymd"
         >
+
+
             {totalCities.map((city, index) => {
+                console.log(videoData)
+              console.log(city,index)
                 return (
                     <Marker
                         key={index}
@@ -63,9 +68,9 @@ export function MapLayer(props) {
                             <motion.div
                                 className="marker_txt"
                                 style = {{
-                                    width: `calc(1rem + 0.2 * ${String(videoData[city].blocks.length)}rem)`,
-                                    height: `calc(1rem + 0.2 * ${String(videoData[city].blocks.length)}rem)`,
-                                    lineHeight: `calc(1rem + 0.2 * ${String(videoData[city].blocks.length)}rem)`
+                                    width: `calc(1rem + 0.2 * ${String(Object.keys(videoData[city].items).length)}rem)`,
+                                    height: `calc(1rem + 0.2 * ${String(Object.keys(videoData[city].items).length)}rem)`,
+                                    lineHeight: `calc(1rem + 0.2 * ${String(videoData[city].items.length)}rem)`
                                 }}
                                 initial = {{scale: 1}}
                                 animate= {{scale: 1.05}}
@@ -74,13 +79,14 @@ export function MapLayer(props) {
                                     ease: 'easeOut',
                                     duration: 0.5
                                 }}
-                                ><p>{isZoomFriendly(videoData[city].blocks.length) && videoData[city].blocks.length}</p>
+                                ><p>{isZoomFriendly(videoData[city].items.length) && videoData[city].items.length}</p>
                             </motion.div>
-                            {isZoomFriendly(videoData[city].blocks.length) && <p style={{color: '#fffcf2'}}>{city}</p>}
+                            {isZoomFriendly(videoData[city].items.length) && <p style={{color: '#fffcf2'}}>{city}</p>}
                         </button>
                     </Marker>
                 )})
             }
+
         </ReactMapGL>
         </div>
     )

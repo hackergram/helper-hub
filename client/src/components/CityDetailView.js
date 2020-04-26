@@ -95,7 +95,9 @@ export function CityDetailView(props) {
                     <button className="close_btn" onClick={(e) => onCityDetailClose(e)}>
                         <img src={close} alt="close icon" />
                     </button>
+
                 </motion.div>
+
                 <motion.div
                     className="cityDetailView_videoList"
                     variants={childVariants}
@@ -103,17 +105,15 @@ export function CityDetailView(props) {
                     animate={bodyAnimControls}
 
                 >
-                    {videoData[selectedCity].blocks.slice(0).reverse().map((videoObj, index) => {
+                <div>
+                  </div>
+                    {videoData[selectedCity].items.slice(0).reverse().map((videoObj, index) => {
                         if(videoObj.link.indexOf('twitter.com') !== -1) {
                             let id = videoObj.link.split(/\/?\//)[4].split('?')[0];
                             return (
                                 <div className="linkCard" key={id + index}>
                                     <p>{videoObj.date}</p>
                                     <h2>{videoObj.caption}</h2>
-
-                                    <h4><b>Fellow: </b>{videoObj.fellowname}</h4>
-                                    <h4><b>Organization: </b>{videoObj.organization}</h4>
-                                    <b>Contact: </b>{videoObj.contact}
                                     <TwitterVideoEmbed id={id}
                                         onLoad={e => {if(e){e.style.display = "inline-block"}}}
                                     />
@@ -125,11 +125,7 @@ export function CityDetailView(props) {
                             return (
                                 <div className="linkCard" key={videoObj.link+ index}>
                                     <p>{videoObj.date}</p>
-                                    <h2 className={videoObj.type}>{videoObj.caption}</h2>
-                                    <h4><b>Fellow: </b>{videoObj.fellowname}</h4>
-                                    <h4><b>Organization: </b>{videoObj.organization}</h4>
-                                    <b>Contact: </b>{videoObj.contact}
-
+                                    <h2>{videoObj.caption}</h2>
                                     <InstagramEmbed url={videoObj.link}
                                         onLoad={e => {if(e){e.style.display = "inline-block"}}}
                                     />

@@ -37,7 +37,6 @@ function updateData(datajson, searchkey){
   return datajson2
 }
 
-
 const fetchJSON = async() => {
 
   const res = await fetch('/getLocationData');
@@ -70,9 +69,6 @@ function App() {
   const [allData, setAllData]=useState({locations:{}});
   const desktopSize = 1024;
   const [searchQuery,setSearchQuery] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
-
   useEffect(()=> {
     fetchJSON()
       .then(res => {
@@ -92,15 +88,6 @@ function App() {
     setAllData(filterresult);
   }
 
-  const onMarkerClick = (e, location) => {
-    e.preventDefault();
-    if(location){window.location.hash = location; window.scrollTo({top: 0, left: 0, behavior: 'smooth'})}
-    else{window.location.hash = ""}
-    if(selectedLocation !== location) {
-      setSelectedLocation(location);
-    }
-  }
-
   return (
     <div className="app">
       <div className="searchbar">
@@ -108,8 +95,6 @@ function App() {
           Search by text: <input type="text" name="searchQuery" onChange={onChangeSearch.bind(searchQuery)}></input>
         </form>
       </div>
-      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={allData.locations} totalCities={Object.keys(allData.locations)} desktopSize={desktopSize}/>
-
       {Object.keys(allData.locations).map(key=>{
         return(
           <div>
