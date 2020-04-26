@@ -2,11 +2,11 @@ import React, {useState, useEffect} from 'react';
 import ReactMapGL, {Marker} from 'react-map-gl';
 import {motion} from 'framer-motion';
 import {PageView } from "./Tracking";
-
+const colors=["red", "green", "blue"]
 export function MapLayer(props) {
 
     let clickedOnMarker = false;
-    const {onMarkerClick, datalayers, videoData, totalCities, desktopSize} = props;
+    const {onMarkerClick, datalayers, videoData, totalLocations, groups, desktopSize} = props;
 
     const [viewport, setViewport] = useState({
         latitude: 21.2787,
@@ -53,39 +53,53 @@ export function MapLayer(props) {
         >
 
 
-            {totalCities.map((city, index) => {
-                console.log(videoData)
-              console.log(city,index)
-                return (
-                    <Marker
-                        key={index}
-                        latitude = {Number(videoData[city].coordinates.latitude)}
-                        longitude = {Number(videoData[city].coordinates.longitude)}
-                        offsetLeft={-24}
-                        offsetTop={-24}
-                    >
-                        <button className='marker_btn' onClick={e => {onMarkerClick(e, city); clickedOnMarker=true; PageView(city)}}>
-                            <motion.div
-                                className="marker_txt"
-                                style = {{
-                                    width: `calc(1rem + 0.2 * ${String(Object.keys(videoData[city].items).length)}rem)`,
-                                    height: `calc(1rem + 0.2 * ${String(Object.keys(videoData[city].items).length)}rem)`,
-                                    lineHeight: `calc(1rem + 0.2 * ${String(videoData[city].items.length)}rem)`
-                                }}
-                                initial = {{scale: 1}}
-                                animate= {{scale: 1.05}}
-                                transition = {{
-                                    yoyo: Infinity,
-                                    ease: 'easeOut',
-                                    duration: 0.5
-                                }}
-                                ><p>{isZoomFriendly(videoData[city].items.length) && videoData[city].items.length}</p>
-                            </motion.div>
-                            {isZoomFriendly(videoData[city].items.length) && <p style={{color: '#fffcf2'}}>{city}</p>}
-                        </button>
-                    </Marker>
-                )})
-            }
+          {totalLocations.map((city, index) => {
+                    let markers = groups.map((group,index2)=>{
+                      if(!Object.keys(videoData[city].items).includes(group)){
+                        videoData[city].items[group]=[]
+                      }
+                      console.log(city,group)
+
+                      return (
+
+
+                        <Marker
+                            key={String(index)+group}
+                            latitude = {Number(videoData[city].coordinates.latitude)}
+                            longitude = {Number(videoData[city].coordinates.longitude)}
+                            offsetLeft={-24}
+                            offsetTop={-24}
+                        >
+                            <button className='marker_btn' onClick={e => {onMarkerClick(e, city); clickedOnMarker=true; PageView(city)}}>
+                                <motion.div
+                                    className="marker_txt"
+                                    style = {{
+                                        width: `calc(1rem + 0.3 * ${String(videoData[city].items[group].length)}rem)`,
+                                        height: `calc(1rem + 0.3 * ${String(videoData[city].items[group].length)}rem)`,
+                                        lineHeight: `calc(1rem + 0.3 * ${String(videoData[city].items[group].length)}rem)`,
+                                        backgroundColor: `${colors[index2]}`
+                                    }}
+                                    initial = {{scale: 1}}
+                                    animate= {{scale: 1.05}}
+                                    transition = {{
+                                        yoyo: Infinity,
+                                        ease: 'easeOut',
+                                        duration: 0.5
+                                    }}
+                                    ><p>{isZoomFriendly(videoData[city].items[group].length) && videoData[city].items[group].length}</p>
+                                </motion.div>
+
+                            </button>
+                        </Marker>
+                    )})
+                    return markers;
+
+                    })
+
+
+              }
+
+
 
         </ReactMapGL>
         </div>

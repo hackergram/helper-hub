@@ -66,7 +66,7 @@ const config = {
 
 function App() {
   const [fetchData, setFetchData] = useState({});
-  const [allData, setAllData]=useState({locations:{}});
+  const [allData, setAllData]=useState({locations:{},groups:[]});
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const desktopSize = 1024;
   const [searchQuery,setSearchQuery] = useState("");
@@ -125,8 +125,8 @@ function App() {
       {isAboutOpen && <About handleAboutClose={handleAboutClose} desktopSize={desktopSize} />}
       <SecNav handleAboutClicked = {handleAboutClicked}/>
 
-      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={allData.locations} totalCities={Object.keys(allData.locations)} desktopSize={desktopSize}/>
-      {selectedLocation && <CityDetailView selectedCity={selectedLocation} videoData={allData.locations}  onCityDetailClose={onCityDetailClose} desktopSize={desktopSize} />}
+      <MapLayer className="mapLayer" onMarkerClick={onMarkerClick} videoData={allData.locations} totalLocations={Object.keys(allData.locations)} groups={allData.groups} desktopSize={desktopSize}/>
+      {selectedLocation && <CityDetailView selectedCity={selectedLocation} videoData={allData.locations}  groups={allData.groups} onCityDetailClose={onCityDetailClose} desktopSize={desktopSize} />}
 
       {Object.keys(allData.locations).map(key=>{
         return(

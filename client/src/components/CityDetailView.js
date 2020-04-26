@@ -3,9 +3,9 @@ import {motion, useMotionValue, useAnimation, AnimatePresence} from 'framer-moti
 import {TwitterVideoEmbed} from 'react-twitter-embed';
 import InstagramEmbed from 'react-instagram-embed';
 import close from '../icons/close.svg'
-
+const colors=["red", "green", "blue"]
 export function CityDetailView(props) {
-    const {selectedCity, videoData, onCityDetailClose, desktopSize } = props;
+    const {selectedCity, videoData, groups, onCityDetailClose, desktopSize } = props;
     let currentScrollValue = useMotionValue(0);
     let touchStart = 0;
     let touchEnd = 0;
@@ -106,6 +106,21 @@ export function CityDetailView(props) {
 
                 >
                 <div>
+                {groups.map((group,index)=>{
+                  return(
+                    <div>
+                    <h2 style={{color:colors[index]}}>{videoData[selectedCity].items[group].length} {group}s</h2>
+                    <ul>
+                    {videoData[selectedCity].items[group].map(item=>{
+                      return(
+                        <li><div>{JSON.stringify(item)}</div></li>
+                      )
+
+                    })}
+                    </ul>
+                    </div>
+                  )
+                })}
                   </div>
                 </motion.div>
 
