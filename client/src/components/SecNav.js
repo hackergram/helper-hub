@@ -9,7 +9,7 @@ export function SecNav(props) {
         <ul className="secNavContainer">
             <li><a
                 href="#"
-                datacontent="COVID-19 Resource Center"
+                datacontent="Helper Hub"
                 style={{backgroundImage: `url(${info})`}}
                 onClick={()=> {
                     handleAboutClicked();
